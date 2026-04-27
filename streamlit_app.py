@@ -6,73 +6,41 @@ st.write(
     "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
 )
 
-def slider_with_input(name, min_val, max_val, default, step=1):
-    if name not in st.session_state:
-        st.session_state[name] = default
-        st.session_state[f"{name}_slider"] = default
-        st.session_state[f"{name}_input"] = default
-
-    def sync_from_slider():
-        val = st.session_state[f"{name}_slider"]
-        st.session_state[name] = val
-        st.session_state[f"{name}_input"] = val
-
-    def sync_from_input():
-        val = st.session_state[f"{name}_input"]
-        st.session_state[name] = val
-        st.session_state[f"{name}_slider"] = val
-
-    col1, col2 = st.sidebar.columns([2,1])
-
-    with col1:
-        st.slider(name, min_val, max(max_val, st.session_state[f"{name}_input"]),
-                  key=f"{name}_slider",
-                  step=step,
-                  on_change=sync_from_slider)
-
-    with col2:
-        st.number_input("",
-                        min_val,
-                        key=f"{name}_input",
-                        step=step,
-                        on_change=sync_from_input)
-
-    return st.session_state[name]
-
-def slider_with_inf(name, min_val, max_val, default, step=1):
+def number_with_inf(name, min_val, default, step=1):
     if name not in st.session_state:
         st.session_state[name] = default
         st.session_state[f"{name}_inf"] = False
 
-    col1, col2, col3 = st.sidebar.columns([2,1,1])
+    col1, col2 = st.sidebar.columns([3,1])
 
     with col1:
-        val = st.slider(name, min_val, max_val, st.session_state[name], step=step)
+        val = st.number_input(
+            name,
+            min_value=min_val,
+            value=st.session_state[name],
+            step=step
+        )
 
     with col2:
-        val_input = st.number_input("", min_val, max_val, value=val, step=step)
-
-    with col3:
         is_inf = st.checkbox("∞", key=f"{name}_inf")
 
-    # logic
     if is_inf:
         return np.inf
     else:
-        st.session_state[name] = val_input if val_input != val else val
-        return st.session_state[name]
+        st.session_state[name] = val
+        return val
 
 # ---- Inputs ----
 st.sidebar.header("Parameters")
 
-p = slider_with_inf("p", 1, 20, 5)
-q = slider_with_input("q", 1, 20, 5)
-d = slider_with_input("d", 1, 100, 20)
-e = slider_with_input("e", 0.0, 1.0, 10e-16, step = 10e-32)
-B = slider_with_input("B", 1, 100, 20)
-a = slider_with_input("a", 0.0, 20.0, 2.0, step=0.1)
-s = slider_with_input("s", 1, 5, 2)
-m = slider_with_input("m", 10, 10000, 100)
+p = number_with_inf("p", 1, 4)
+q = number_with_inf("q", 1, 4)
+d = number_with_inf("d", 1, 5)
+e = number_with_inf("e", 0.0, 10e-16, step = 10e-32)
+B = number_with_inf("B", 1, 40)
+a = number_with_inf("a", 0.0, 2.0, step=0.1)
+s = number_with_inf("s", 1, 2)
+m = number_with_inf("m", 1, 10e5)
 
 
 # ---- Constants ----
