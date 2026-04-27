@@ -81,6 +81,20 @@ def c_B_a(B,q,a):
     B_tanh = B **(-1/q) * (a - np.tanh(a/2))
     return np.sqrt(5/12) * np.tanh(B_tanh) / B_tanh
 
+def alpha(q,B,a):
+    bar_a = B ** (1-2/q) * a
+    alpha = 1 / (np.sqrt(bar_a ** 2 - 4 * bar_a**2/ (bar_a + 1)**2 * (np.arccosh(np.sqrt(bar_a)))**2) + 1)
+    return alpha
+
+def L_assump(q,B,a):
+    bar_a = B ** (1-2/q) * a
+    nom = 21 * B ** (1+1/q) * np.arccosh(np.sqrt(bar_a)) * alpha(q,B,a)
+    cosh_a = (np.cosh(2*np.arccosh(np.sqrt(bar_a))*alpha(q,B,a)))**2
+    den = 2 * a * (np.tanh(a - np.tanh(a/2)))**3 * cosh_a
+
+    final = 2*np.log(nom / den)/ np.log(bar_a / cosh_a) + 2
+    return final
+
 # ---- Compute ----
 C = constant(B, a, q, p, s)
 bound = C * m_max**(-1/p)
@@ -94,6 +108,8 @@ show_const("c_a", c_a_formula, c_a(B,q,a))
 c_B_a_formula = r"\sqrt{\frac{5}{12}} \cdot \frac{\tanh\left(B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)\right)}{B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)}"
 show_const(r"\bar{c}_{B,a}", c_B_a_formula, c_B_a(B,q,a))
 
+L_assump_formula = r"\frac{2\ln\left( \frac{21 B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{2a\tanh^3\left[a - \tanh(a/2)\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)} +2 \leq L"
+st.latex(rf"{L_assump(q,B,a):.2} = {L_assump_formula}")
 
 st.metric("Constant C", f"{C:.4e}")
 st.metric("Lower bound", f"{bound:.4e}")
