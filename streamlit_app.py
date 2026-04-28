@@ -79,10 +79,9 @@ def pretty(v):
 def a_comp(q,B,a):
     return B**(1-2/q)*a
 
-def constant(B, a, q, p, s):
-    term1 = np.sqrt(B**(2 - 4/q) * a**2 - 1) / (4 * B**(1 - 2/q))
-    c_bar = c_B_a(B, a, q)
-    term2 = (c_bar / (2**(1 + 2/s) * np.sqrt(s)))**(s/p)
+def constant_before_m(B, a, q, p, s, c_B_a):
+    term1 = np.sqrt((a_comp(q,B,a))**2 - 1) / (4 * B**(1 - 2/q))
+    term2 = (c_B_a / (2**(1 + 2/s) * np.sqrt(s)))**(s/p)
     return term1 * term2
 
 def c_a(B,q,a):
@@ -130,6 +129,11 @@ def s_assump(m_max, c_a, q, B, a, alpha_a, tilded_a, j):
 
 # --- Assumptions ---
 st.sidebar.header("Parameters")
+
+if st.sidebar.button("Reset to defaults"):
+    for k in list(st.session_state.keys()):
+        del st.session_state[k]
+    st.rerun()
 
 # Nondependt num_inputs
 p = num_input("p", 1, 4)
@@ -193,7 +197,7 @@ else:
     const_c_B_a = c_B_a(B,q,a)
 
     s_ass = s_assump(m_max, const_c_a, q, B, a, alpha_a, tilde_a, j)
-    s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]}{16\,B^{1+3/q}\arccosh(\sqrt{\tilde a})\,\alpha(\tilde a)}\right)}"
+    s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
     st.latex(rf"{s_formula} = {round(s_ass, 2)}")
 
 
@@ -209,19 +213,28 @@ else:
 
 
         # ---- Compute ----
-        C = constant(B, a, q, p, s)
-        bound = C * m_max**(-1/p)
-
         # ---- Output ----
         st.subheader("Result")
 
         c_a_formula = r"c_a = \frac{\tanh\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}{20\cosh^2\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}"
         c_B_a_formula = r"\qquad \qquad \bar c_{B,a} = \sqrt{\frac{5}{12}} \cdot \frac{\tanh\left(B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)\right)}{B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)}"
 
-        st.latex(rf"{c_a_formula} = {const_c_a:.2e}, {c_B_a_formula} = {const_c_B_a:.2e}")
+        #st.latex(rf"{c_a_formula} = {const_c_a:.2e}, {c_B_a_formula} = {const_c_B_a:.2e}")
 
-        st.metric("Constant C", f"{C:.4e}")
-        st.metric("Lower bound", f"{bound:.4e}")
+        c_Ba = c_B_a(B, q, a)
+        final_const = constant_before_m(B, a, q, p, s, c_Ba)
+        st.metric("Lower bound constant", f"{final_const:.2e}")
+        m_form = r"\cdot m^{-\frac1p}"
+        lower_bound_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
+        st.latex(rf"{lower_bound_formula} \ge {final_const:.2e} {m_form}")
+
+        st.write("The worst case lower bound:")
+        worst_lower_bound = final_const * m_max ** (-1/p)
+        st.latex(rf"{lower_bound_formula} \ge {worst_lower_bound:.2e}")
+        if final_const < e_p:
+            st.error("lower bound is smaller than machine precision for every m")
+        elif worst_lower_bound < e_p:
+            st.error("lower bound is smaller than machine precision for some m")
 
 
         # ---- Table ----
