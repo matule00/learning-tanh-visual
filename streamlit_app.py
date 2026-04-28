@@ -237,12 +237,15 @@ else:
         error_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         worst_error_formula = r"\operatorname{err}_{m_{\max}}^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         lower_bound_formula = r"\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
-        st.latex(rf"{error_formula}{lower_bound_formula} = {final_const:.2e} {m_form}")
+        mantissa, exp = f"{final_const:.2e}".split("e")
+        exp = int(exp)
+
+        st.latex(rf"{error_formula}{lower_bound_formula} = {mantissa} \cdot 10^{{{exp}}} {m_form}")
 
         st.write("The worst case lower bound:")
         worst_lower_bound = final_const * m_max ** (-1/p)
         st.latex(rf"{worst_error_formula} {worst_lower_bound:.2e}")
         if final_const < e_p:
-            st.error("lower bound is smaller than machine precision for every m")
+            st.error("Lower bound is smaller than machine precision for every m")
         elif worst_lower_bound < e_p:
-            st.error("lower bound is smaller than machine precision for some m")
+            st.error("Lower bound is smaller than machine precision for some m")
