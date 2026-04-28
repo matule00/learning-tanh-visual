@@ -225,38 +225,15 @@ else:
         final_const = constant_before_m(B, a, q, p, s, c_Ba)
         st.metric("Lower bound constant", f"{final_const:.2e}")
         m_form = r"\cdot m^{-\frac1p}"
-        lower_bound_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
-        st.latex(rf"{lower_bound_formula} \ge {final_const:.2e} {m_form}")
+        error_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
+        worst_error_formula = r"\operatorname{err}_{m_{\max}}^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
+        lower_bound_formula = r"\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
+        st.latex(rf"{error_formula}{lower_bound_formula} \ge {final_const:.2e} {m_form}")
 
         st.write("The worst case lower bound:")
         worst_lower_bound = final_const * m_max ** (-1/p)
-        st.latex(rf"{lower_bound_formula} \ge {worst_lower_bound:.2e}")
+        st.latex(rf"{worst_error_formula} {worst_lower_bound:.2e}")
         if final_const < e_p:
             st.error("lower bound is smaller than machine precision for every m")
         elif worst_lower_bound < e_p:
             st.error("lower bound is smaller than machine precision for some m")
-
-
-        # ---- Table ----
-
-        st.subheader("Details")
-        st.table({
-            "parameter": ["p", "q", "B", "a", "L", "k", "j", "s", "m_max"],
-            "value": [
-                pretty(p),
-                pretty(q),
-                pretty(B),
-                pretty(L),
-                pretty(k),
-                pretty(j),
-                pretty(a),
-                pretty(s),
-                pretty(m_max),
-            ]
-        })
-
-        # ---- Optional small plot ----
-        if st.checkbox("Show m ↦ bound plot"):
-            ms = np.linspace(1, m_max, 100)
-            vals = C * ms**(-1/p)
-            st.line_chart(vals)
