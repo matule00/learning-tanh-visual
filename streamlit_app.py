@@ -2,10 +2,10 @@ import streamlit as st
 import numpy as np
 
 st.set_page_config(layout="wide")
-st.title("MC Error Lower Bound")
-st.write(
-    "Computational illustration of the resulted bound."
-)
+
+st.title("MC Error Lower Bound Explorer")
+st.caption("Interactive verification of theoretical Monte Carlo lower bounds of error in $L^p$ approximation of classes containg $\\tanh$ neural networks.")
+
 
 def num_input(name, min_val, default, inf_possible=True, max_val=None, step=1, value_override=None):
     if name not in st.session_state:
@@ -128,9 +128,9 @@ def s_assump(m_max, c_a, q, B, a, alpha_a, tilded_a, j):
     return 2*np.log(4*m_max) / (j * np.log(x) + np.log(z))
 
 # --- Assumptions ---
-st.sidebar.header("Parameters")
+st.sidebar.markdown("## Parameters")
 
-if st.sidebar.button("Reset to defaults"):
+if st.sidebar.button("Reset parameters", type="primary"):
     for k in list(st.session_state.keys()):
         del st.session_state[k]
     st.rerun()
@@ -138,6 +138,7 @@ if st.sidebar.button("Reset to defaults"):
 # Nondependt num_inputs
 p = num_input("p", 1, 4)
 q = num_input("q", 1, 4)
+d = num_input("d", 1, 15, inf_possible=False)
 B = num_input("B", 1, 45, inf_possible=False)
 a = num_input("a", 0.0, 2.0, step=0.01, inf_possible=False)
 
@@ -145,39 +146,46 @@ a = num_input("a", 0.0, 2.0, step=0.01, inf_possible=False)
 tilde_a = a_comp(q,B,a)
 alpha_a = alpha(tilde_a)
 
-st.subheader("Assumptions")
+st.markdown("### 1. Structural assumptions")
+st.divider()
 
-st.write("Necessary:")
-ass_on_a = r"1< B^{1-\frac2q}a"
-st.latex(rf"{ass_on_a} = {round(tilde_a,2)}")
+a_formula = r"B^{1-\frac2q}a"
+ass_on_B = r"\qquad \text{and} \qquad B \ge 2d"
+
+st.latex(rf"\tilde a = {a_formula} = {round(tilde_a,2)} > 1, \quad B \ge 2d")
 
 if tilde_a <= 1:
-    st.error("Condition not satisfied")
+    st.error(r"Violation: $\tilde a \le 1$")
+elif B < 2*d:
+    st.error(r"Violation: $B < 2d$")
 else:
-    st.success("Condition satisfied")
+    st.success("All structural assumptions satisfied.")
 
-    d = num_input("d", 1, 15, inf_possible=False)
+    st.markdown("### 2. Layer allocation")
+    st.divider()
+
+
     e_p = num_input("e_p", 0.0, 10e-16, step = 10e-32, inf_possible=False)
 
     L_ass = L_assump(q, B, a, tilde_a, alpha_a)
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
-    L_min = max(int(np.ceil(L_ass)), 6, int(np.ceil(3+k_ass)))
+    k_min = max(3, int(np.ceil(k_ass)))
+    L_min = max(int(np.ceil(L_ass)), 6, k_min+3)
     L = num_input("L", min_val=L_min, default=max(L_min, 12), inf_possible=False)
 
     j_ass = L - 2 - k_ass
 
-    k = num_input("k", int(np.ceil(k_ass)), int(np.ceil(k_ass)), inf_possible=False, max_val=L-3)
+    k = num_input("k", k_min, int(np.ceil(k_ass)), inf_possible=False, max_val=L-3)
     j = num_input("j", int(np.ceil(k_ass)), int(np.ceil(k_ass)), inf_possible=False, value_override=L-2-k)
 
     k_assump_formula = r"k \;\ge\; 3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)}"
     j_assump_formula = r"\qquad j \leq L-2-k"
 
-    st.write("Assumption on k to push the tail error below machine precision and the remaining number of layers j to increase m::")
+    st.write("$k \\ge 3$ controls the tail suppresion and $j$ increases $m$:")
     st.latex(rf"{k_assump_formula} = {k_ass:.2}, {j_assump_formula} = {j_ass:.2}")
 
-    st.write("Assumptions on L:")
+    st.write("Assumptions on $L \\geq 6$:")
     st.latex(r"""
-    L \ge 6,\quad 
     L-2 = k + j 
     \implies 
     L \ge 3 + k_{\min}.
@@ -198,6 +206,9 @@ else:
 
     s_ass = s_assump(m_max, const_c_a, q, B, a, alpha_a, tilde_a, j)
     s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
+    st.markdown("### 3. Dimension constraint")
+    st.divider()
+
     st.latex(rf"{s_formula} = {round(s_ass, 2)}")
 
 
@@ -210,12 +221,10 @@ else:
 
         s = num_input("s", int(np.ceil(s_ass)), int(np.ceil(s_ass)), inf_possible=False, max_val=d)
 
-
-
-        # ---- Compute ----
         # ---- Output ----
-        st.subheader("Result")
-
+        st.markdown("### 4. Final bound")
+        st.divider()
+        
         c_a_formula = r"c_a = \frac{\tanh\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}{20\cosh^2\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}"
         c_B_a_formula = r"\qquad \qquad \bar c_{B,a} = \sqrt{\frac{5}{12}} \cdot \frac{\tanh\left(B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)\right)}{B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)}"
 
@@ -228,7 +237,7 @@ else:
         error_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         worst_error_formula = r"\operatorname{err}_{m_{\max}}^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         lower_bound_formula = r"\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
-        st.latex(rf"{error_formula}{lower_bound_formula} \ge {final_const:.2e} {m_form}")
+        st.latex(rf"{error_formula}{lower_bound_formula} = {final_const:.2e} {m_form}")
 
         st.write("The worst case lower bound:")
         worst_lower_bound = final_const * m_max ** (-1/p)
