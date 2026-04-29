@@ -90,7 +90,7 @@ def c_a(B,q,a):
 
 def c_B_a(B,q,a):
     B_tanh = B **(-1/q) * (a - np.tanh(a/2))
-    return np.sqrt(5/12) * np.tanh(B_tanh) / B_tanh
+    return 3/5 * np.tanh(B_tanh) / B_tanh
 
 def alpha(tilde_a):
     if tilde_a <= 1:
@@ -103,7 +103,7 @@ def L_assump(q,B,a, tilde_a, alpha_a):
         return 0
     nom = 21 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
     cosh_a = (np.cosh(2*np.arccosh(np.sqrt(tilde_a))*alpha_a))**2
-    den = 2 * a * (np.tanh(a - np.tanh(a/2)))**3 * cosh_a
+    den = 2 * a * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**3 * cosh_a
 
     final = 2*np.log(nom / den)/ np.log(tilde_a / cosh_a) + 2
     return final
@@ -174,9 +174,10 @@ else:
     L = num_input("L", min_val=L_min, default=max(L_min, 12), inf_possible=False)
 
     j_ass = L - 2 - k_ass
+    j_min = L - 2 - k_min
 
-    k = num_input("k", k_min, int(np.ceil(k_ass)), inf_possible=False, max_val=L-3)
-    j = num_input("j", int(np.ceil(k_ass)), int(np.ceil(k_ass)), inf_possible=False, value_override=L-2-k)
+    k = num_input("k", k_min, k_min, inf_possible=False, max_val=L-3)
+    j = num_input("j", j_min, j_min, inf_possible=False, value_override=L-2-k)
 
     k_assump_formula = r"k \;\ge\; 3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)}"
     j_assump_formula = r"\qquad j \leq L-2-k"
@@ -193,10 +194,10 @@ else:
 
     st.write("and")
 
-    L_assump_formula = r"\frac{2\ln\left( \frac{21 B^{1+1/q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{2a\tanh^3\left[a - \tanh(a/2)\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)} +2 \leq L"
+    L_assump_formula = r"\frac{2\ln\left( \frac{21 B^{1+1/q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{2a\tanh^3\left[B^{-1/q}(a - \tanh(a/2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)} +2 \leq L"
     st.latex(rf"{L_ass:.2} = {L_assump_formula}")
     st.write("Hence:")
-    st.latex(rf"L \ge \min(6, {round(L_ass, 2)}, {int(np.ceil(3+k_ass))}) = {L_min}")
+    st.latex(rf"L \ge \min(\,{round(L_ass, 2)}, \,3+{k_ass:.2}\,) = {L_min}")
 
     st.markdown("##### Total number of weight parameters:")
     P = (L-2)*B**2 + (L+d)*B + 1
@@ -219,19 +220,20 @@ else:
     st.latex(rf"{s_formula} = {round(s_ass, 2)}")
 
 
-    if s_ass < 1:
+    if s_ass < 0:
         st.error("Unable to get s positive, adjust the inputs")
     elif s_ass > d:
         st.error("s is greater than d, adjust the inputs")
     else:
-        s = num_input("s", int(np.ceil(s_ass)), int(np.ceil(s_ass)), inf_possible=False, max_val=d)
+        s_min = max(1, int(np.ceil(s_ass)))
+        s = num_input("s", s_min, s_min, inf_possible=False, max_val=d)
 
         # ---- Output ----
         st.markdown("### 4. Final bound")
         st.divider()
         
         c_a_formula = r"c_a = \frac{\tanh\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}{20\cosh^2\left(B^{-1/q}\tanh\left(\frac a2\right)\right)}"
-        c_B_a_formula = r"\qquad \qquad \bar c_{B,a} = \sqrt{\frac{5}{12}} \cdot \frac{\tanh\left(B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)\right)}{B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)}"
+        c_B_a_formula = r"\qquad \qquad \bar c_{B,a} = \frac{3}{5} \cdot \frac{\tanh\left(B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)\right)}{B^{-1/q}\left(a-\tanh\left(\frac a2\right)\right)}"
 
         #st.latex(rf"{c_a_formula} = {const_c_a:.2e}, {c_B_a_formula} = {const_c_B_a:.2e}")
 
