@@ -136,11 +136,11 @@ if st.sidebar.button("Reset parameters", type="primary"):
     st.rerun()
 
 # Nondependt num_inputs
-p = num_input("p", 1, 4)
-q = num_input("q", 1, 4)
-d = num_input("d", 1, 15, inf_possible=False)
-B = num_input("B", 1, 45, inf_possible=False)
-a = num_input("a", 0.0, 2.0, step=0.01, inf_possible=False)
+p = num_input("$p$", 1, 4)
+q = num_input("$q$", 1, 4)
+d = num_input("$d$", 1, 15, inf_possible=False)
+B = num_input("$B$", 1, 45, inf_possible=False)
+a = num_input("$a$", 0.0, 2.0, step=0.01, inf_possible=False)
 
 # Precomputed variables
 tilde_a = a_comp(q,B,a)
@@ -165,19 +165,19 @@ else:
     st.divider()
 
 
-    e_p = num_input("e_p", 0.0, 10e-16, step = 10e-32, inf_possible=False)
+    e_p = num_input("$\\varepsilon_{p}$", 0.0, 10e-16, step = 10e-32, inf_possible=False)
 
     L_ass = L_assump(q, B, a, tilde_a, alpha_a)
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
     k_min = max(3, int(np.ceil(k_ass)))
     L_min = max(int(np.ceil(L_ass)), 6, k_min+3)
-    L = num_input("L", min_val=L_min, default=max(L_min, 12), inf_possible=False)
+    L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False)
 
     j_ass = L - 2 - k_ass
     j_min = L - 2 - k_min
 
-    k = num_input("k", k_min, k_min, inf_possible=False, max_val=L-3)
-    j = num_input("j", j_min, j_min, inf_possible=False, value_override=L-2-k)
+    k = num_input("$k$", k_min, k_min, inf_possible=False, max_val=L-3)
+    j = num_input("$j$", j_min, j_min, inf_possible=False, value_override=L-2-k)
 
     k_assump_formula = r"k \;\ge\; 3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)}"
     j_assump_formula = r"\qquad j \leq L-2-k"
@@ -204,7 +204,7 @@ else:
 
     st.latex(rf"P = B^2(L-2) + B(L+d) + 1 = {P}")
 
-    m_max = num_input(r"m_max", 1, 100000, inf_possible=False)
+    m_max = num_input(r"$m_{\\max}$", 1, 100000, inf_possible=False)
 
     if P > m_max:
         st.warning("Number of parameters exceeds sample budget ($P > m_{\max}$).")
@@ -213,20 +213,21 @@ else:
     const_c_B_a = c_B_a(B,q,a)
 
     s_ass = s_assump(m_max, const_c_a, q, B, a, alpha_a, tilde_a, j)
-    s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
-    st.markdown("### 3. Dimension constraint")
-    st.divider()
-
-    st.latex(rf"{s_formula} = {round(s_ass, 2)}")
 
 
     if s_ass < 0:
-        st.error("Unable to get s positive, adjust the inputs")
+        st.error("Unable to get $s$ positive, adjust the inputs")
     elif s_ass > d:
-        st.error("s is greater than d, adjust the inputs")
+        st.error("$s$ has to be greater than $d$ in order to satisfy the results for all $m \\leq m_{\\max}$, adjust the inputs")
     else:
+        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
+        st.markdown("### 3. Dimension constraint")
+        st.divider()
+
+        st.latex(rf"{s_formula} = {round(s_ass, 2)}")
+
         s_min = max(1, int(np.ceil(s_ass)))
-        s = num_input("s", s_min, s_min, inf_possible=False, max_val=d)
+        s = num_input("$s$", s_min, s_min, inf_possible=False, max_val=d)
 
         # ---- Output ----
         st.markdown("### 4. Final bound")
@@ -239,20 +240,22 @@ else:
 
         c_Ba = c_B_a(B, q, a)
         final_const = constant_before_m(B, a, q, p, s, c_Ba)
-        st.metric("Lower bound constant", f"{final_const:.2e}")
         m_form = r"\cdot m^{-\frac1p}"
         error_formula = r"\operatorname{err}_m^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         worst_error_formula = r"\operatorname{err}_{m_{\max}}^{MC}\!\left(U, L^p([0,1]^d)\right)\;\ge\;"
         lower_bound_formula = r"\frac{\sqrt{B^{2-\frac{4}{q}}a^2-1}}{4B^{1-\frac{2}{q}}}\cdot\left(\frac{\bar c_{B,a}}{2^{1+\frac{2}{s}}\sqrt{s}}\right)^{\frac{s}{p}}m^{-\frac{1}{p}}"
         mantissa, exp = f"{final_const:.2e}".split("e")
         exp = int(exp)
-
-        st.latex(rf"{error_formula}{lower_bound_formula} = {mantissa} \cdot 10^{{{exp}}} {m_form}")
-
-        st.write("The worst case lower bound:")
         worst_lower_bound = final_const * m_max ** (-1/p)
-        st.latex(rf"{worst_error_formula} {worst_lower_bound:.2e}")
+
         if final_const < e_p:
-            st.error("Lower bound is smaller than machine precision for every m")
-        elif worst_lower_bound < e_p:
-            st.error("Lower bound is smaller than machine precision for some m")
+            st.metric("Lower bound constant", f"0")
+            st.latex(rf"{error_formula} 0")
+            st.error("Lower bound is smaller than machine precision $\\varepsilon_{p}$ for every $m$")
+        else:
+            st.metric("Lower bound constant", f"{final_const:.2e}")
+            st.latex(rf"{error_formula}{lower_bound_formula} = {mantissa} \cdot 10^{{{exp}}} {m_form}")
+            st.write("The worst case lower bound:")
+            st.latex(rf"{worst_error_formula} {worst_lower_bound:.2e}")
+            if worst_lower_bound < e_p:
+                st.error("Lower bound is smaller than machine precision for some $m$")
