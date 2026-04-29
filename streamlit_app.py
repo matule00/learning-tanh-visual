@@ -198,8 +198,15 @@ else:
     st.write("Hence:")
     st.latex(rf"L \ge \min(6, {round(L_ass, 2)}, {int(np.ceil(3+k_ass))}) = {L_min}")
 
+    st.markdown("##### Total number of weight parameters:")
+    P = (L-2)*B**2 + (L+d)*B + 1
+
+    st.latex(rf"P = B^2(L-2) + B(L+d) + 1 = {P}")
 
     m_max = num_input(r"m_max", 1, 100000, inf_possible=False)
+
+    if P > m_max:
+        st.warning("Number of parameters exceeds sample budget ($P > m_{\max}$).")
 
     const_c_a = c_a(B,q,a)
     const_c_B_a = c_B_a(B,q,a)
@@ -217,8 +224,6 @@ else:
     elif s_ass > d:
         st.error("s is greater than d, adjust the inputs")
     else:
-        st.success("s positive")
-
         s = num_input("s", int(np.ceil(s_ass)), int(np.ceil(s_ass)), inf_possible=False, max_val=d)
 
         # ---- Output ----
