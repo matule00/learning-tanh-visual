@@ -153,7 +153,7 @@ else:
     st.divider()
 
 
-    e_p = num_input("$\\varepsilon_{p}$", 0.0, 10e-16, step = 10e-32, inf_possible=False, auto_possible=False)
+    e_p = num_input("$\\varepsilon_{p}$", 0.0, 1e-16, step = 1e-16, inf_possible=False, auto_possible=False)
 
     L_ass = L_assump(q, B, a, tilde_a, alpha_a)
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
