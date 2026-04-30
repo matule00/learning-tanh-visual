@@ -7,63 +7,51 @@ st.title("MC Error Lower Bound Explorer")
 st.caption("Interactive verification of theoretical Monte Carlo lower bounds of error in $L^p$ approximation of classes containg $\\tanh$ neural networks.")
 
 
-def num_input(name, min_val, default, inf_possible=True, max_val=None, step=1, value_override=None):
+def num_input(name, min_val, default, inf_possible=True, max_val=None, step=1, auto_possible=True):
     if name not in st.session_state:
         st.session_state[name] = default
         if inf_possible:
             st.session_state[f"{name}_inf"] = False
+        elif auto_possible:
+            st.session_state[f"{name}_auto"] = True  # ← NEW
 
-    col1, col2 = st.sidebar.columns([3,1])
+    col1, col2 = st.sidebar.columns([3,1.5])
 
     # --- format ---
-    if name == "e_p":
+    if name == "$\\varepsilon_{p}$":
         fmt = "%.2e"
     elif isinstance(step, int):
         fmt = "%d"
     else:
         fmt = "%.2f"
 
-    # --- inf state ---
     is_inf = st.session_state.get(f"{name}_inf", False)
+    is_auto = st.session_state.get(f"{name}_auto", False)
+
+    # --- enforce automatic value ---
+    if is_auto:
+        st.session_state[name] = default
 
     with col1:
-        if max_val is not None:
-            val = st.number_input(name, 
-                              min_value=min_val,
-                              max_value=max_val,
-                              step=step, 
-                              key=name, 
-                              disabled=is_inf, 
-                              format=fmt 
-                              )
-        else:
-            if value_override is not None:
-                val = st.number_input(
-                    name,
-                    value=int(value_override),
-                    step=1,
-                    format="%d",
-                    disabled=True
-                )
-                return value_override
-            
-            val = st.number_input(name, 
-                                min_value=min_val,
-                                step=step, 
-                                key=name, 
-                                disabled=is_inf, 
-                                format=fmt 
-                                )
+        val = st.number_input(
+            name,
+            min_value=min_val,
+            max_value=max_val,
+            step=step,
+            key=name,
+            disabled=is_inf or is_auto,   # ← lock when auto
+            format=fmt
+        )
 
-    # --- show ∞ only if allowed ---
-    if inf_possible:
-        with col2:
+    # --- right column: ∞ OR auto ---
+    with col2:
+        if inf_possible:
             st.checkbox("∞", key=f"{name}_inf")
+        elif auto_possible:
+            st.checkbox("auto", key=f"{name}_auto")
 
-    if inf_possible and is_inf:
-        return np.inf
-    else:
-        return val
+    return np.inf if (inf_possible and is_inf) else val
+
 
 def pretty(v):
         if isinstance(v, (int, np.integer)):
@@ -136,11 +124,11 @@ if st.sidebar.button("Reset parameters", type="primary"):
     st.rerun()
 
 # Nondependt num_inputs
-p = num_input("$p$", 1, 4)
-q = num_input("$q$", 1, 4)
-d = num_input("$d$", 1, 15, inf_possible=False)
-B = num_input("$B$", 1, 45, inf_possible=False)
-a = num_input("$a$", 0.0, 2.0, step=0.01, inf_possible=False)
+p = num_input("$p$", 1, 4, auto_possible=False)
+q = num_input("$q$", 1, 4, auto_possible=False)
+d = num_input("$d$", 1, 15, inf_possible=False, auto_possible=False)
+B = num_input("$B$", 1, 45, inf_possible=False, auto_possible=False)
+a = num_input("$a$", 0.0, 2.0, step=0.01, inf_possible=False, auto_possible=False)
 
 # Precomputed variables
 tilde_a = a_comp(q,B,a)
@@ -165,19 +153,19 @@ else:
     st.divider()
 
 
-    e_p = num_input("$\\varepsilon_{p}$", 0.0, 10e-16, step = 10e-32, inf_possible=False)
+    e_p = num_input("$\\varepsilon_{p}$", 0.0, 10e-16, step = 10e-32, inf_possible=False, auto_possible=False)
 
     L_ass = L_assump(q, B, a, tilde_a, alpha_a)
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
     k_min = max(3, int(np.ceil(k_ass)))
-    L_min = max(int(np.ceil(L_ass)), 6, k_min+3)
-    L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False)
+    L_min = max(int(np.ceil(L_ass)), k_min+3)
+    L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False, auto_possible=False)
 
     j_ass = L - 2 - k_ass
-    j_min = L - 2 - k_min
 
-    k = num_input("$k$", k_min, k_min, inf_possible=False, max_val=L-3)
-    j = num_input("$j$", j_min, j_min, inf_possible=False, value_override=L-2-k)
+    k = num_input("$k$", k_min, k_min, max_val=L-3, inf_possible=False, auto_possible=True)
+    j_max = L - 2 - k
+    j = num_input("$j$", 1, j_max, max_val=j_max, inf_possible=False, auto_possible=True)
 
     k_assump_formula = r"k \;\ge\; 3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)}"
     j_assump_formula = r"\qquad j \leq L-2-k"
@@ -204,7 +192,7 @@ else:
 
     st.latex(rf"P = B^2(L-2) + B(L+d) + 1 = {P}")
 
-    m_max = num_input(r"$m_{\\max}$", 1, 100000, inf_possible=False)
+    m_max = num_input(r"$m_{\\max}$", 1, 100000, inf_possible=False, auto_possible=False)
 
     if P > m_max:
         st.warning("Number of parameters exceeds sample budget ($P > m_{\max}$).")
@@ -220,14 +208,14 @@ else:
     elif s_ass > d:
         st.error("$s$ has to be greater than $d$ in order to satisfy the results for all $m \\leq m_{\\max}$, adjust the inputs")
     else:
-        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\,\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
+        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\cdot\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
         st.markdown("### 3. Dimension constraint")
         st.divider()
 
         st.latex(rf"{s_formula} = {round(s_ass, 2)}")
 
         s_min = max(1, int(np.ceil(s_ass)))
-        s = num_input("$s$", s_min, s_min, inf_possible=False, max_val=d)
+        s = num_input("$s$", s_min, s_min, max_val=d, inf_possible=False, auto_possible=True)
 
         # ---- Output ----
         st.markdown("### 4. Final bound")
