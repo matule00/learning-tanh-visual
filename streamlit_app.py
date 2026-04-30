@@ -86,14 +86,14 @@ def alpha(tilde_a):
     alpha = 1 / (np.sqrt(tilde_a ** 2 - 4 * tilde_a**2/ (tilde_a + 1)**2 * (np.arccosh(np.sqrt(tilde_a)))**2) + 1)
     return alpha
 
-def L_assump(q,B,a, tilde_a, alpha_a):
+def j_assump(q,B,a, tilde_a, alpha_a):
     if tilde_a <= 1:
         return 0
-    nom = 21 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
+    nom = 10 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
     cosh_a = (np.cosh(2*np.arccosh(np.sqrt(tilde_a))*alpha_a))**2
-    den = 2 * a * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**3 * cosh_a
+    den = a * (np.tanh(2*B**(-1/q)*np.tanh(a/2))) * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**2 * cosh_a
 
-    final = 2*np.log(nom / den)/ np.log(tilde_a / cosh_a) + 2
+    final = np.log(nom / den)/ np.log(tilde_a / cosh_a)
     return final
 
 def pi(a, alpha_a):
@@ -155,37 +155,31 @@ else:
 
     e_p = num_input("$\\varepsilon_{p}$", 0.0, 1e-16, step = 1e-16, inf_possible=False, auto_possible=False)
 
-    L_ass = L_assump(q, B, a, tilde_a, alpha_a)
+    j_ass = j_assump(q, B, a, tilde_a, alpha_a)
+    j_min = max(1, int(np.ceil(j_ass)))
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
     k_min = max(3, int(np.ceil(k_ass)))
-    L_min = max(int(np.ceil(L_ass)), k_min+3)
+    L_min = k_min+j_min + 2
     L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False, auto_possible=False)
-
-    j_ass = L - 2 - k_ass
 
     k = num_input("$k$", k_min, k_min, max_val=L-3, inf_possible=False, auto_possible=True)
     j_max = L - 2 - k
-    j = num_input("$j$", 1, j_max, max_val=j_max, inf_possible=False, auto_possible=True)
+    j = num_input("$j$", j_min, j_max, max_val=j_max, inf_possible=False, auto_possible=True)
 
-    k_assump_formula = r"k \;\ge\; 3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)}"
+    k_assump_formula = r"3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)} \le k"
     j_assump_formula = r"\qquad j \leq L-2-k"
 
-    st.write("$k \\ge 3$ controls the tail suppresion and $j$ increases $m$:")
-    st.latex(rf"{k_assump_formula} = {k_ass:.2}, {j_assump_formula} = {j_ass:.2}")
+    st.write("Assumption on $k \\ge 3$, which controls the tail suppresion:")
+    st.latex(rf"{k_ass:.2} = {k_assump_formula} \, .")
 
-    st.write("Assumptions on $L \\geq 6$:")
-    st.latex(r"""
-    L-2 = k + j 
-    \implies 
-    L \ge 3 + k_{\min}.
-    """)
+    st.write("Assumptions on $j$, which increases $m$:")
 
-    st.write("and")
-
-    L_assump_formula = r"\frac{2\ln\left( \frac{21 B^{1+1/q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{2a\tanh^3\left[B^{-1/q}(a - \tanh(a/2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)} +2 \leq L"
-    st.latex(rf"{L_ass:.2} = {L_assump_formula}")
+    j_assump_formula = r"\frac{\ln\left( \frac{10 B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}\leq j."
+    st.latex(rf"{j_ass:.2} = {j_assump_formula}")
     st.write("Hence:")
-    st.latex(rf"L \ge \min(\,{round(L_ass, 2)}, \,3+{k_ass:.2}\,) = {L_min}")
+
+    L_formula = r"L-2 = k + j \implies L \ge 2 + j_{\min} + k_{\min}"
+    st.latex(rf"{L_formula} = {L_min}.")
 
     st.markdown("##### Total number of weight parameters:")
     P = (L-2)*B**2 + (L+d)*B + 1
