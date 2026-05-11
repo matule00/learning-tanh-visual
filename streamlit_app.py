@@ -174,7 +174,7 @@ else:
 
     st.write("Assumptions on $j$, which increases $m$:")
 
-    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}\leq j."
+    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\rho(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}\leq j."
     st.latex(rf"{round(j_ass, 2)} = {j_assump_formula}")
     st.write("Hence:")
 
@@ -202,7 +202,7 @@ else:
     elif s_ass > d:
         st.error("$s$ has to be greater than $d$ in order to satisfy the results for all $m \\leq m_{\\max}$, adjust the inputs")
     else:
-        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\cdot\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \alpha(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)}\right)}"
+        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\cdot\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \rho(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)}\right)}"
         st.markdown("### 3. Dimension constraint")
         st.divider()
 
