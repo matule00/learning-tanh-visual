@@ -89,9 +89,9 @@ def alpha(tilde_a):
 def j_assump(q,B,a, tilde_a, alpha_a):
     if tilde_a <= 1:
         return 0
-    nom = 5 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
+    nom = 5 * B ** (3/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
     cosh_a = (np.cosh(2*np.arccosh(np.sqrt(tilde_a))*alpha_a))**2
-    den = a * (np.tanh(2*B**(-1/q)*np.tanh(a/2))) * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**2 * cosh_a
+    den = a ** 2 * (np.tanh(2*B**(-1/q)*np.tanh(a/2))) * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**2
 
     final = np.log(nom / den)/ np.log(tilde_a / cosh_a)
     return final
@@ -111,8 +111,8 @@ def k_assump(e_p,a, tilde_a, alpha_a):
 def s_assump(m_max, c_a, q, B, a, alpha_a, tilded_a, j):
     cosh_a = (np.cosh(2*np.arccosh(np.sqrt(tilded_a)) * alpha_a))**2
     x = tilded_a / cosh_a
-    y = c_a * a * (a - np.tanh(a/2)) ** 2 * cosh_a
-    z = y / (16 * B ** (1+3/q) * np.arccosh(np.sqrt(tilded_a)) * alpha_a)
+    y = c_a * a ** 2 * (a - np.tanh(a/2)) ** 2
+    z = y / (16 * B ** (5/q) * np.arccosh(np.sqrt(tilded_a)) * alpha_a)
     return 2*np.log(4*m_max) / (j * np.log(x) + np.log(z))
 
 # --- Assumptions ---
@@ -159,7 +159,7 @@ else:
     j_min = max(1, int(np.ceil(j_ass)))
     k_ass = k_assump(e_p, a, tilde_a, alpha_a)
     k_min = max(3, int(np.ceil(k_ass)))
-    L_min = k_min+j_min + 2
+    L_min = k_min+j_min + 3
     L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False, auto_possible=False)
 
     k = num_input("$k$", k_min, k_min, max_val=L-3, inf_possible=False, auto_possible=True)
@@ -174,11 +174,11 @@ else:
 
     st.write("Assumptions on $j$, which increases $m$:")
 
-    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\rho(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}\leq j."
+    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{\frac3q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\rho(\tilde a)}{a^2\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}\leq j."
     st.latex(rf"{round(j_ass, 2)} = {j_assump_formula}")
     st.write("Hence:")
 
-    L_formula = r"L-2 = k + j \implies L \ge 2 + j_{\min} + k_{\min}"
+    L_formula = r"L-3 = k + j \implies L \ge 3 + j_{\min} + k_{\min}"
     st.latex(rf"{L_formula} = {L_min}.")
 
     st.markdown("##### Total number of weight parameters:")
@@ -202,7 +202,7 @@ else:
     elif s_ass > d:
         st.error("$s$ has to be greater than $d$ in order to satisfy the results for all $m \\leq m_{\\max}$, adjust the inputs")
     else:
-        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\cdot\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \Big)+\ln\!\left(\frac{c_a\,a(a-\tanh(a/2))^2\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a}) \rho(\tilde a)\right]}{16\,B^{1+3/q}\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)}\right)}"
+        s_formula = r"d \;\ge\; s \;\ge\;\frac{2\ln(4m_{\max})}{j\cdot\ln\!\Big( \frac{\tilde a}{\cosh^2\!\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \Big)   +  \ln\!\left(\frac{c_a\,a^2(a-\tanh(a/2))^2}{16\,B^{5/q}\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)}\right)}"
         st.markdown("### 3. Dimension constraint")
         st.divider()
 
