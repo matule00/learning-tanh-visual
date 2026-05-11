@@ -89,7 +89,7 @@ def alpha(tilde_a):
 def j_assump(q,B,a, tilde_a, alpha_a):
     if tilde_a <= 1:
         return 0
-    nom = 10 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
+    nom = 5 * B ** (1+1/q) * np.arccosh(np.sqrt(tilde_a)) * alpha_a
     cosh_a = (np.cosh(2*np.arccosh(np.sqrt(tilde_a))*alpha_a))**2
     den = a * (np.tanh(2*B**(-1/q)*np.tanh(a/2))) * (np.tanh(B**(-1/q)*(a - np.tanh(a/2))))**2 * cosh_a
 
@@ -170,12 +170,12 @@ else:
     j_assump_formula = r"\qquad j \leq L-2-k"
 
     st.write("Assumption on $k \\ge 3$, which controls the tail suppresion:")
-    st.latex(rf"{k_ass:.2} = {k_assump_formula} \, .")
+    st.latex(rf"{round(k_ass,2)} = {k_assump_formula} \, .")
 
     st.write("Assumptions on $j$, which increases $m$:")
 
-    j_assump_formula = r"\frac{\ln\left( \frac{10 B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}\leq j."
-    st.latex(rf"{j_ass:.2} = {j_assump_formula}")
+    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{1+\frac1q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\alpha(\tilde a)}{a\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\alpha(\tilde a)\right]} \right)}\leq j."
+    st.latex(rf"{round(j_ass, 2)} = {j_assump_formula}")
     st.write("Hence:")
 
     L_formula = r"L-2 = k + j \implies L \ge 2 + j_{\min} + k_{\min}"
