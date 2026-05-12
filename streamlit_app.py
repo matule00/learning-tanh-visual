@@ -163,23 +163,22 @@ else:
     L = num_input("$L$", min_val=L_min, default=max(L_min, 12), inf_possible=False, auto_possible=False)
 
     k = num_input("$k$", k_min, k_min, max_val=L-3, inf_possible=False, auto_possible=True)
-    j_max = L - 2 - k
+    j_max = L - 3 - k
     j = num_input("$j$", j_min, j_max, max_val=j_max, inf_possible=False, auto_possible=True)
 
     k_assump_formula = r"3 + \frac{\ln\!\left( \frac{4a \tilde a}{\varepsilon_p \pi(\tilde a)\left(1+\pi(\tilde a)^{-1}\right)^2} \right)}{\ln \!\left( \frac{\cosh^2\!\left(\tilde a\frac{\pi(\tilde a)-1}{\pi(\tilde a)+1}\right)}{\tilde a} \right)} \le k"
-    j_assump_formula = r"\qquad j \leq L-2-k"
 
     st.write("Assumption on $k \\ge 3$, which controls the tail suppresion:")
     st.latex(rf"{round(k_ass,2)} = {k_assump_formula} \, .")
 
     st.write("Assumptions on $j$, which increases $m$:")
 
-    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{\frac3q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\rho(\tilde a)}{a^2\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}\leq j."
-    st.latex(rf"{round(j_ass, 2)} = {j_assump_formula}")
+    j_assump_formula = r"\frac{\ln\left( \frac{5 \, B^{\frac3q}\operatorname{arccosh}\left(\sqrt{\tilde a}\right)\,\rho(\tilde a)}{a^2\tanh(2B^{-1/q}\tanh(\frac a2))\tanh^2\left[B^{-1/q}(a - \tanh(\frac a2))\right]} \right)}{\ln\left(  \frac{\tilde a}{\cosh^2\left[2\operatorname{arccosh}(\sqrt{\tilde a})\rho(\tilde a)\right]} \right)}\leq j"
+    st.latex(rf"{round(j_ass, 2)} = {j_assump_formula} \, .")
     st.write("Hence:")
 
     L_formula = r"L-3 = k + j \implies L \ge 3 + j_{\min} + k_{\min}"
-    st.latex(rf"{L_formula} = {L_min}.")
+    st.latex(rf"{L_formula} = {L_min} \, .")
 
     st.markdown("##### Total number of weight parameters:")
     P = (L-2)*B**2 + (L+d)*B + 1
@@ -206,7 +205,7 @@ else:
         st.markdown("### 3. Dimension constraint")
         st.divider()
 
-        st.latex(rf"{s_formula} = {round(s_ass, 2)}")
+        st.latex(rf"{s_formula} = {round(s_ass, 2)} \, .")
 
         s_min = max(1, int(np.ceil(s_ass)))
         s = num_input("$s$", s_min, s_min, max_val=d, inf_possible=False, auto_possible=True)
